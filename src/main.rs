@@ -1,6 +1,7 @@
-use axum::{routing::get, Router};
+use axum::{http::Method, routing::get, Router};
 use scraper::{ElementRef, Html, Selector};
 use serde::Serialize;
+use tower_http::cors::{Any, CorsLayer};
 
 const SCHEDULE_URL: &'static str = "https://www.ifkhindas.com/kalender/ajaxKalender.asp?ID=436811";
 
@@ -96,9 +97,14 @@ async fn calendar() -> String {
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any);
+
     let router = Router::new()
         .route("/", get(hello_world))
-        .route("/calendar", get(calendar));
+        .route("/calendar", get(calendar))
+        .layer(cors);
 
     Ok(router.into())
 }
